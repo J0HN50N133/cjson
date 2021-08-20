@@ -24,20 +24,25 @@ enum {
     JSON_PARSE_INVALID_STRING_ESCAPE,
     JSON_PARSE_INVALID_STRING_CHAR,
     JSON_PARSE_INVALID_UNICODE_SURROGATE,
-    JSON_PARSE_INVALID_UNICODE_HEX
+    JSON_PARSE_INVALID_UNICODE_HEX,
+    JSON_PARSE_MISS_COMMA_OR_SQUARE_BRACKET
 };
 
-typedef struct {
+typedef struct json_value json_value;
+struct json_value {
     json_type type;
     union {
+        struct { json_value *e; size_t size; } arr; /*array*/
         struct { char *s; size_t len;} str;      /* string */
         double number;                           /* number */
     } val;
-} json_value;
+};
 
 #define json_val_init(v) do{ (v)-> type = JSON_NULL; } while(0)
-#define json_set_null(v) json_free(v);
-void json_free(json_value *v);
+#define json_set_null(v) json_val_free(v);
+
+int json_parse(json_value *, const char *);
+void json_val_free(json_value *v);
 json_type json_get_type(const json_value *v);
 void json_set_boolean(json_value *v,int b);
 int json_get_boolean(const json_value *v);
@@ -46,6 +51,8 @@ double json_get_number(const json_value *v);
 void json_set_string(json_value *v, const char *s, size_t len);
 size_t json_get_string_length(json_value *v);
 const char* json_get_string(json_value *v);
+size_t json_get_array_size(json_value *v);
+json_value * json_get_array_element(json_value *v, size_t index);
 
 typedef struct {
     const char *json;
@@ -53,6 +60,5 @@ typedef struct {
     size_t size, top;
 } json_context;
 
-int json_parse(json_value *, const char *);
 
 #endif
